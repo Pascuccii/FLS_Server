@@ -18,6 +18,7 @@ public class DatabaseConnection {
     public DatabaseConnection(String URL, String USER, String PASS) {
         try {
             connection = DriverManager.getConnection(URL, USER, PASS);
+            connection.setAutoCommit(true);
             if(!connection.isClosed()) {
                 connected = true;
                 System.out.println("Connection succeed!");

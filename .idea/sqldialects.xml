@@ -4,5 +4,6 @@
     <file url="file://$PROJECT_DIR$/src/main/java/Connectivity/Server.java" dialect="MySQL" />
     <file url="file://$PROJECT_DIR$/src/main/java/Entities/Client.java" dialect="MySQL" />
     <file url="file://$PROJECT_DIR$/src/main/java/Entities/User.java" dialect="MySQL" />
+    <file url="file://$PROJECT_DIR$/src/main/resources/INIT.sql" dialect="MySQL" />
   </component>
 </project>

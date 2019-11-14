@@ -107,19 +107,23 @@ public class Server extends Application implements TCPConnectionListener {
     public Server() {
         System.out.println("Server's running...");
         connDB =
-                new DatabaseConnection("jdbc:mysql://localhost:3306/test?useUnicode=true&useSSL=true&useJDBCCompliantTimezoneShift=true" +
+                new DatabaseConnection("jdbc:mysql://localhost:3306/flsdb?useUnicode=true&useSSL=true&useJDBCCompliantTimezoneShift=true" +
                         "&useLegacyDatetimeCode=false&serverTimezone=Europe/Moscow", "root", "root");
 
         try {
             if (serverSocket == null) {
-                serverSocket = new ServerSocket(8189);
+                serverSocket = new ServerSocket(8000);
                 serverSocket.setSoTimeout(1000);
             }
-            initUsersData();
-            initClientsData();
-        } catch (IOException | SQLException e) {
+        } catch (IOException e) {
             System.out.println("Another instance of server is running!!!");
             System.exit(0);
+        }
+
+        try {
+            initUsersData();
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
     }
 
@@ -176,7 +180,7 @@ public class Server extends Application implements TCPConnectionListener {
                 serverOnOffMenuButton.setText(serverOnMenuItem.getText());
                 serverState = 1;
                 try {
-                    serverSocket = new ServerSocket(8189);
+                    serverSocket = new ServerSocket(8000);
                     titleLabel.setText(Inet4Address.getLocalHost().getHostAddress() + ":" + serverSocket.getLocalPort());
                     serverSocket.setSoTimeout(1000);
                 } catch (IOException e) {
@@ -590,7 +594,7 @@ public class Server extends Application implements TCPConnectionListener {
         User u = new User(value);
         try {
             String prepStat =
-                    "INSERT INTO `test`.`users` (`name`, `password`, `email`,`access_mode`) VALUES (?, ?, ?, ?)";
+                    "INSERT INTO `flsdb`.`users` (`name`, `password`, `email`,`access_mode`) VALUES (?, ?, ?, ?)";
             PreparedStatement preparedStatement = connDB.getConnection().prepareStatement(prepStat);
             preparedStatement.setString(1, u.getUsername());
             preparedStatement.setString(2, u.getPassword());
@@ -604,7 +608,7 @@ public class Server extends Application implements TCPConnectionListener {
 
     private void deleteAllUsers() {
         try {
-            String prepStat = "DELETE FROM `test`.`users` WHERE (`id` > -1)";
+            String prepStat = "DELETE FROM `flsdb`.`users` WHERE (`id` > -1)";
             PreparedStatement preparedStatement = connDB.getConnection().prepareStatement(prepStat);
             preparedStatement.execute();
         } catch (SQLException e) {
@@ -616,7 +620,7 @@ public class Server extends Application implements TCPConnectionListener {
         try {
             if (email.equals("null"))
                 email = null;
-            String prepStat = "UPDATE `test`.`users` SET `name` = ?, `password` = ?, `email` = ? WHERE (`id` = ?);";
+            String prepStat = "UPDATE `flsdb`.`users` SET `name` = ?, `password` = ?, `email` = ? WHERE (`id` = ?);";
             PreparedStatement preparedStatement = connDB.getConnection().prepareStatement(prepStat);
             preparedStatement.setString(1, username);
             preparedStatement.setString(2, password);
@@ -652,6 +656,7 @@ public class Server extends Application implements TCPConnectionListener {
 
     @Override
     public void stop() throws Exception {
+        serverSocket.close();
         super.stop();
     }
 
