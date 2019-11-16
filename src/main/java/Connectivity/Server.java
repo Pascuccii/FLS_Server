@@ -24,17 +24,20 @@ import javafx.stage.StageStyle;
 import javafx.util.Callback;
 import javafx.util.Duration;
 
-import java.io.*;
-import java.net.*;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.net.Inet4Address;
+import java.net.ServerSocket;
 import java.sql.*;
 import java.time.LocalDate;
 import java.time.ZonedDateTime;
-import java.util.Enumeration;
 
 import static java.lang.Thread.sleep;
 
 public class Server extends Application implements TCPConnectionListener {
 
+    int i = 10;
     private volatile static int serverState = 1;
     private volatile static String log = "";
     private volatile static ObservableList<TCPConnection> connections = FXCollections.observableArrayList();
@@ -494,7 +497,6 @@ public class Server extends Application implements TCPConnectionListener {
                 System.out.println(client);
             }
         }
-
     }
 
     private void addClient(String value) {
