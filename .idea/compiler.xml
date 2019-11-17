@@ -10,7 +10,7 @@
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel target="11">
-      <module name="FLS" target="11" />
+      <module name="FLS_Server" target="11" />
     </bytecodeTargetLevel>
   </component>
 </project>

@@ -1,7 +1,6 @@
 package Connectivity;
 
-import Entities.Client;
-import Entities.User;
+import Entities.*;
 import enums.Disability;
 import enums.MaritalStatus;
 import enums.Retiree;
@@ -36,8 +35,6 @@ import java.time.ZonedDateTime;
 import static java.lang.Thread.sleep;
 
 public class Server extends Application implements TCPConnectionListener {
-
-    int i = 10;
     private volatile static int serverState = 1;
     private volatile static String log = "";
     private volatile static ObservableList<TCPConnection> connections = FXCollections.observableArrayList();
@@ -46,7 +43,12 @@ public class Server extends Application implements TCPConnectionListener {
     private double xOffset = 0;
     private double yOffset = 0;
     private ObservableList<User> usersData = FXCollections.observableArrayList();
-    private ObservableList<Client> clientsData = FXCollections.observableArrayList();
+    private ObservableList<Group> groupsData = FXCollections.observableArrayList();
+    private ObservableList<Lesson> lessonsData = FXCollections.observableArrayList();
+    private ObservableList<Student> studentsData = FXCollections.observableArrayList();
+    private ObservableList<Subject> subjectsData = FXCollections.observableArrayList();
+    private ObservableList<Teacher> teachersData = FXCollections.observableArrayList();
+    private ObservableList<TeacherSubject> teachersSubjectsData = FXCollections.observableArrayList();
     @FXML
     private AnchorPane primaryAnchorPane;
 
@@ -136,6 +138,16 @@ public class Server extends Application implements TCPConnectionListener {
 
     @FXML
     void initialize() {
+        try {
+            initGroupsData();
+            initSubjectsData();
+            initTeachersData();
+            initStudentsData();
+            initTeachersSubjectsData();
+            initLessonsData();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
         serverToolTip.setShowDelay(Duration.seconds(0));
         serverToolTip.setShowDuration(Duration.INDEFINITE);
         serverToolTip.setHideOnEscape(true);
@@ -346,7 +358,12 @@ public class Server extends Application implements TCPConnectionListener {
             if (value.equals("init")) {
                 try {
                     initUsersData();
-                    initClientsData();
+                    initGroupsData();
+                    initLessonsData();
+                    initStudentsData();
+                    initSubjectsData();
+                    initTeachersData();
+                    initTeachersSubjectsData();
                 } catch (SQLException e) {
                     e.printStackTrace();
                 }
@@ -354,22 +371,35 @@ public class Server extends Application implements TCPConnectionListener {
                 for (User u : usersData)
                     tcpConnection.sendString(u.toString());
 
-                tcpConnection.sendString(clientsData.size() + " CLIENTS:");
-                for (Client c : clientsData)
-                    tcpConnection.sendString(c.toString());
+                tcpConnection.sendString(teachersData.size() + " TEACHERS:");
+                for (Teacher t : teachersData)
+                    tcpConnection.sendString(t.toString());
+
+                tcpConnection.sendString(studentsData.size() + " STUDENTS:");
+                for (Student s : studentsData)
+                    tcpConnection.sendString(s.toString());
+
+                tcpConnection.sendString(lessonsData.size() + " LESSONS:");
+                for (Lesson l : lessonsData)
+                    tcpConnection.sendString(l.toString());
+
+                tcpConnection.sendString(subjectsData.size() + " SUBJECTS:");
+                for (Subject sb : subjectsData)
+                    tcpConnection.sendString(sb.toString());
+
+                tcpConnection.sendString(groupsData.size() + " GROUPS:");
+                for (Group g : groupsData)
+                    tcpConnection.sendString(g.toString());
+
+                tcpConnection.sendString(teachersSubjectsData.size() + " TEACHERSSUBJECTS:");
+                for (TeacherSubject ts : teachersSubjectsData)
+                    tcpConnection.sendString(ts.toString());
+
                 tcpConnection.sendString("END");
+
             } else {
                 String[] vals = value.split("\\|");
                 switch (vals[0]) {
-                    case "Client":
-
-                        log(tcpConnection, value);
-                        for (Client c : clientsData)
-                            if (c.getId() == Integer.parseInt(vals[2])) {
-                                c.set(connDB, vals[1], vals[3]);
-                                break;
-                            }
-                        break;
                     case "User":
 
                         log(tcpConnection, value);
@@ -387,11 +417,6 @@ public class Server extends Application implements TCPConnectionListener {
                         log(tcpConnection, value);
                         System.out.println(value.substring(8));
                         addUser(value.substring(8));
-                        break;
-                    case "addClient":
-                        log(tcpConnection, value);
-                        System.out.println(value.substring(10));
-                        addClient(value.substring(10));
                         break;
                     case "changeAccountData":
                         log(tcpConnection, value);
@@ -460,138 +485,121 @@ public class Server extends Application implements TCPConnectionListener {
         }
     }
 
-    private void initClientsData() throws SQLException {
+    private void initGroupsData() throws SQLException {
         if (connDB.isConnected()) {
             Statement statement = connDB.getConnection().createStatement();
-            ResultSet resultSet = statement.executeQuery("SELECT * FROM clients");
-            clientsData.clear();
+            ResultSet resultSet = statement.executeQuery("SELECT  * FROM `group`");
+            groupsData.clear();
 
             System.out.println();
             while (resultSet.next()) {
-                Client client = new Client();
-                client.setId(resultSet.getInt("Id"));
-                client.setName(resultSet.getString("Name"));
-                client.setSurname(resultSet.getString("Surname"));
-                client.setPatronymic(resultSet.getString("Patronymic"));
-                client.setBirthDate(resultSet.getDate("Birth_date").toString());
-                client.setPassportSeries(resultSet.getString("Passport_series"));
-                client.setPassportNumber(resultSet.getString("Passport_number"));
-                client.setIssuedBy(resultSet.getString("Issued_by"));
-                client.setIssuedDate(resultSet.getDate("Issued_date").toString());
-                client.setBirthPlace(resultSet.getString("Birth_place"));
-                client.setActualResidenceCity(resultSet.getString("Actual_residence_city"));
-                client.setActualResidenceAddress(resultSet.getString("Actual_residence_address"));
-                client.setHomeNumber(resultSet.getString("Home_number"));
-                client.setMobileNumber(resultSet.getString("Mobile_number"));
-                client.setEmail(resultSet.getString("Email"));
-                client.setJob(resultSet.getString("Job"));
-                client.setPosition(resultSet.getString("Position"));
-                client.setRegistrationCity(resultSet.getString("Registration_city"));
-                client.setMaritalStatus(MaritalStatus.valueOf(resultSet.getString("Marital_status")));
-                client.setCitizenship(resultSet.getString("Citizenship"));
-                client.setDisability(Disability.valueOf(resultSet.getString("Disability")));
-                client.setRetiree(Retiree.valueOf(resultSet.getString("Is_retiree")));
-                client.setMonthlyIncome(resultSet.getString("Monthly_income"));
-                client.setIdNumber(resultSet.getString("Id_number"));
-                clientsData.add(client);
-                System.out.println(client);
+                Group group = new Group();
+                group.setId(resultSet.getInt("id"));
+                group.setLevel(resultSet.getString("level"));
+                groupsData.add(group);
+                System.out.println(group);
             }
         }
     }
 
-    private void addClient(String value) {
-        try {
-            Client toAdd = new Client(value);
-            System.out.println(toAdd);
+    private void initSubjectsData() throws SQLException {
+        if (connDB.isConnected()) {
+            Statement statement = connDB.getConnection().createStatement();
+            ResultSet resultSet = statement.executeQuery("SELECT  * FROM subject");
+            subjectsData.clear();
 
-
-            boolean result = true;
-            if (!toAdd.getName().matches("[а-яА-Я]{2,20}"))
-                result = false;
-            if (!toAdd.getSurname().matches("[а-яА-Я]{2,20}"))
-                result = false;
-            if (!toAdd.getPatronymic().matches("[а-яА-Я]{2,30}"))
-                result = false;
-            if (!isFullnameUnique(toAdd.getName(), toAdd.getSurname(), toAdd.getPatronymic()))
-                result = false;
-            if (!toAdd.getActualResidenceCity().matches("[а-яА-Я.\\-\\s]{2,20}"))
-                result = false;
-            if (!toAdd.getActualResidenceAddress().matches("[а-яА-Я.\\-\\s/0-9]{2,40}"))
-                result = false;
-            if (!toAdd.getRegistrationCity().matches("[а-яА-Я.\\-\\s]{2,20}"))
-                result = false;
-            if (!toAdd.getPassportSeries().matches("[A-Z]{2}"))
-                result = false;
-
-            if (!toAdd.getPassportNumber().matches("[0-9]{7}"))
-                result = false;
-            if (!isPassportNumberUnique(toAdd.getPassportNumber()))
-                result = false;
-            if (!toAdd.getIssuedBy().matches("[а-яА-Я\\-\\s/.\\d]{2,40}"))
-                result = false;
-            if (!toAdd.getBirthPlace().matches("[а-яА-Я\\-\\s/.]{2,30}"))
-                result = false;
-            if (!toAdd.getCitizenship().matches("[а-яА-Я]{2,25}"))
-                result = false;
-            if (!toAdd.getIdNumber().matches("[0-9A-Z]{14}"))
-                result = false;
-            if (!isIDNumberUnique(toAdd.getIdNumber()))
-                result = false;
-            if (!toAdd.getMonthlyIncome().matches("^[0-9]+(\\.[0-9]+)?$") && !toAdd.getMonthlyIncome().equals(""))
-                result = false;
-            if (!toAdd.getEmail().matches("(?:[a-z0-9!_-]+(?:\\.[a-z0-9!_-]+)*|\"(?:[\\x01-\\x08\\x0b\\x0c\\x0e-\\x1f\\x21\\x23-\\x5b\\x5d-\\x7f]|\\\\[\\x01-\\x09\\x0b\\x0c\\x0e-\\x7f])*\")@(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|\\[(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?|[a-z0-9-]*[a-z0-9]:(?:[\\x01-\\x08\\x0b\\x0c\\x0e-\\x1f\\x21-\\x5a\\x53-\\x7f]|\\\\[\\x01-\\x09\\x0b\\x0c\\x0e-\\x7f])+))") && !toAdd.getEmail().equals(""))
-                result = false;
-            if (!toAdd.getMobileNumber().matches("^(\\+375|375)?[\\s\\-]?\\(?(17|29|33|44)\\)?[\\s\\-]?[0-9]{3}[\\s\\-]?[0-9]{2}[\\s\\-]?[0-9]{2}$") && !toAdd.getMobileNumber().equals(""))
-                result = false;
-            if (!toAdd.getHomeNumber().matches("[0-9]{7}") && !toAdd.getHomeNumber().equals(""))
-                result = false;
-
-            if (LocalDate.parse(toAdd.getBirthDate()).isAfter(LocalDate.now()))
-                result = false;
-            if (LocalDate.parse(toAdd.getIssuedDate()).isAfter(LocalDate.now()))
-                result = false;
-
-            if (result) {
-                String prepStat =
-                        "INSERT INTO `test`.`clients` (`Name`, `Surname`, `Patronymic`, `Birth_date`, `Passport_series`, `Passport_number`," +
-                                "                              `Issued_by`, `Issued_date`, `Birth_place`, `Actual_residence_city`," +
-                                "                              `Actual_residence_address`, `Home_number`, `Mobile_number`, `Email`, `Job`, `Position`," +
-                                "                              `Registration_city`, `Disability`, `Marital_status`, `Citizenship`, `Is_retiree`," +
-                                "                              `Monthly_income`, `Id_number`)" +
-                                "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);";
-                PreparedStatement preparedStatement = connDB.getConnection().prepareStatement(prepStat);
-                preparedStatement.setString(1, toAdd.getName());
-                preparedStatement.setString(2, toAdd.getSurname());
-                preparedStatement.setString(3, toAdd.getPatronymic());
-                preparedStatement.setDate(4, Date.valueOf(toAdd.getBirthDate()));
-                preparedStatement.setString(5, toAdd.getPassportSeries());
-                preparedStatement.setString(6, toAdd.getPassportNumber());
-                preparedStatement.setString(7, toAdd.getIssuedBy());
-                preparedStatement.setDate(8, Date.valueOf(toAdd.getIssuedDate()));
-                preparedStatement.setString(9, toAdd.getBirthPlace());
-                preparedStatement.setString(10, toAdd.getActualResidenceCity());
-                preparedStatement.setString(11, toAdd.getActualResidenceAddress());
-                preparedStatement.setString(12, toAdd.getHomeNumber());
-                preparedStatement.setString(13, toAdd.getMobileNumber());
-                preparedStatement.setString(14, toAdd.getEmail());
-                preparedStatement.setString(15, toAdd.getJob());
-                preparedStatement.setString(16, toAdd.getPosition());
-                preparedStatement.setString(17, toAdd.getRegistrationCity());
-                preparedStatement.setString(18, toAdd.getDisability());
-                preparedStatement.setString(19, toAdd.getMaritalStatus());
-                preparedStatement.setString(20, toAdd.getCitizenship());
-                preparedStatement.setString(21, toAdd.getRetiree());
-                preparedStatement.setString(22, (toAdd.getMonthlyIncome().equals("")) ? null : toAdd.getMonthlyIncome());
-                preparedStatement.setString(23, toAdd.getIdNumber());
-                preparedStatement.execute();
-            } else {
-                System.out.println("WRONG CLIENT FORMAT");
+            System.out.println();
+            while (resultSet.next()) {
+                Subject subject = new Subject();
+                subject.setId(resultSet.getInt("id"));
+                subject.setName(resultSet.getString("name"));
+                subject.setHours(resultSet.getInt("hours"));
+                subjectsData.add(subject);
+                System.out.println(subject);
             }
-        } catch (SQLException e) {
-            e.printStackTrace();
         }
     }
 
+    private void initTeachersData() throws SQLException {
+        if (connDB.isConnected()) {
+            Statement statement = connDB.getConnection().createStatement();
+            ResultSet resultSet = statement.executeQuery("SELECT  * FROM teacher");
+            teachersData.clear();
+
+            System.out.println();
+            while (resultSet.next()) {
+                Teacher teacher = new Teacher();
+                teacher.setId(resultSet.getInt("id"));
+                teacher.setName(resultSet.getString("name"));
+                teacher.setSurname(resultSet.getString("surname"));
+                teacher.setPatronymic(resultSet.getString("patronymic"));
+                teachersData.add(teacher);
+                System.out.println(teacher);
+            }
+        }
+    }
+
+
+    private void initStudentsData() throws SQLException {
+        if (connDB.isConnected()) {
+            Statement statement = connDB.getConnection().createStatement();
+            ResultSet resultSet = statement.executeQuery("SELECT  * FROM student");
+            studentsData.clear();
+
+            System.out.println();
+            while (resultSet.next()) {
+                Student student = new Student();
+                student.setId(resultSet.getInt("id"));
+                student.setName(resultSet.getString("name"));
+                student.setSurname(resultSet.getString("surname"));
+                student.setPatronymic(resultSet.getString("patronymic"));
+                student.setGroupId(resultSet.getInt("groupId"));
+                student.setEmail(resultSet.getString("email"));
+                student.setPhone(resultSet.getString("phone"));
+                studentsData.add(student);
+                System.out.println(student);
+            }
+        }
+    }
+
+    private void initTeachersSubjectsData() throws SQLException {
+        if (connDB.isConnected()) {
+            Statement statement = connDB.getConnection().createStatement();
+            ResultSet resultSet = statement.executeQuery("SELECT  * FROM teacher_subject");
+            teachersSubjectsData.clear();
+
+            System.out.println();
+            while (resultSet.next()) {
+                TeacherSubject teacherSubject = new TeacherSubject();
+                teacherSubject.setId(resultSet.getInt("id"));
+                teacherSubject.setSubjectId(resultSet.getInt("subjectId"));
+                teacherSubject.setTeacherId(resultSet.getInt("teacherId"));
+                teachersSubjectsData.add(teacherSubject);
+                System.out.println(teacherSubject);
+            }
+        }
+    }
+
+    private void initLessonsData() throws SQLException {
+        if (connDB.isConnected()) {
+            Statement statement = connDB.getConnection().createStatement();
+            ResultSet resultSet = statement.executeQuery("SELECT  * FROM lesson");
+            lessonsData.clear();
+
+            System.out.println();
+            while (resultSet.next()) {
+                Lesson lesson = new Lesson();
+                lesson.setId(resultSet.getInt("id"));
+                lesson.setGroupId(resultSet.getInt("groupId"));
+                lesson.setTeacher_subjectId(resultSet.getInt("teacher_subjectId"));
+                lesson.setCabinet(resultSet.getInt("cabinet"));
+                lesson.setDate(resultSet.getDate("date").toString());
+                lesson.setTime(resultSet.getTime("time").toString());
+                lessonsData.add(lesson);
+                System.out.println(lesson);
+            }
+        }
+    }
     private void addUser(String value) {
         User u = new User(value);
         try {
@@ -697,24 +705,6 @@ public class Server extends Application implements TCPConnectionListener {
         return year + "/" + month + "/" + day + "-" + hour + ":" + minute + ":" + second;
     }
 
-    private boolean isIDNumberUnique(String value) {
-        for (Client c : clientsData) {
-            if (c.getIdNumber().equals(value)) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    private boolean isPassportNumberUnique(String value) {
-        for (Client c : clientsData) {
-            if (c.getPassportNumber().equals(value)) {
-                return false;
-            }
-        }
-        return true;
-    }
-
     private void addDeleteButton() {
         TableColumn<TCPConnection, Void> deleteColumn = new TableColumn<>("");
         deleteColumn.setMinWidth(23);
@@ -766,12 +756,12 @@ public class Server extends Application implements TCPConnectionListener {
         connectionsTable.getColumns().add(0, deleteColumn);
     }
 
-    private boolean isFullnameUnique(String name, String surname, String patro) {
+    /*private boolean isFullnameUnique(String name, String surname, String patro) {
         for (Client c : clientsData)
             if (c.getName().equals(name.trim()) && c.getSurname().equals(surname.trim()) && c.getPatronymic().equals(patro.trim()))
                 return false;
         return true;
     }
-
+*/
     //TODO: ПРОДУБЛИРОВАТЬ ПРОВЕРКИ НА СЕРВЕР
 }
