@@ -1,5 +1,10 @@
 package Entities;
 
+import Connectivity.DatabaseConnection;
+
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
+
 public class Teacher {
     private int id;
     private String name;
@@ -20,6 +25,8 @@ public class Teacher {
         if (!vals[2].equals("null")) this.surname = vals[2];
         if (!vals[3].equals("null")) this.patronymic = vals[3];
     }
+
+    public Teacher(){}
 
     @Override
     public String toString() {
@@ -59,5 +66,80 @@ public class Teacher {
 
     public void setPatronymic(String patronymic) {
         this.patronymic = patronymic;
+    }
+
+
+    public void setNameDB(DatabaseConnection conn, String name) {
+        if (name.matches("[а-яА-Я]{2,20}")) {
+            this.name = name;
+            try {
+                String prepStat = "UPDATE teacher SET name = ? WHERE id = ?";
+                PreparedStatement preparedStatement = conn.getConnection().prepareStatement(prepStat);
+                preparedStatement.setInt(2, this.id);
+                preparedStatement.setString(1, name);
+                preparedStatement.execute();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    public void setSurnameDB(DatabaseConnection conn, String surname) {
+        if (surname.matches("[а-яА-Я]{2,20}")) {
+            this.surname = surname;
+            try {
+                String prepStat = "UPDATE teacher SET surname = ? WHERE id = ?";
+                PreparedStatement preparedStatement = conn.getConnection().prepareStatement(prepStat);
+                preparedStatement.setInt(2, this.id);
+                preparedStatement.setString(1, surname);
+                preparedStatement.execute();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    public void setPatronymicDB(DatabaseConnection conn, String patronymic) {
+        if (patronymic.matches("[а-яА-Я]{2,30}")) {
+            this.patronymic = patronymic;
+            try {
+                String prepStat = "UPDATE teacher SET patronymic = ? WHERE id = ?";
+                PreparedStatement preparedStatement = conn.getConnection().prepareStatement(prepStat);
+                preparedStatement.setInt(2, this.id);
+                preparedStatement.setString(1, patronymic);
+                preparedStatement.execute();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+
+    public void deleteDB(DatabaseConnection conn) {
+        try {
+            String prepStat = "DELETE FROM teacher WHERE id = ?";
+            PreparedStatement preparedStatement = conn.getConnection().prepareStatement(prepStat);
+            preparedStatement.setInt(1, this.id);
+            preparedStatement.execute();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void set(DatabaseConnection conn, String field, String value) {
+        switch (field) {
+            case "setName":
+                setNameDB(conn, value);
+                break;
+            case "setSurname":
+                setSurnameDB(conn, value);
+                break;
+            case "setPatronymic":
+                setPatronymicDB(conn, value);
+                break;
+            case "delete":
+                deleteDB(conn);
+                break;
+        }
     }
 }

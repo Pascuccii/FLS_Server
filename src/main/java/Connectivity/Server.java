@@ -539,7 +539,6 @@ public class Server extends Application implements TCPConnectionListener {
         }
     }
 
-
     private void initStudentsData() throws SQLException {
         if (connDB.isConnected()) {
             Statement statement = connDB.getConnection().createStatement();
@@ -600,6 +599,7 @@ public class Server extends Application implements TCPConnectionListener {
             }
         }
     }
+    
     private void addUser(String value) {
         User u = new User(value);
         try {
