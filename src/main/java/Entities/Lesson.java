@@ -10,15 +10,15 @@ import java.sql.Time;
 public class Lesson {
     private int id;
     private int groupId;
-    private int teacher_subjectId;
+    private int teacherId;
     private int cabinet;
     private String date;
     private String time;
 
-    public Lesson(int id, int groupId, int teacher_subjectId, int cabinet, String date, String time) {
+    public Lesson(int id, int groupId, int teacherId, int cabinet, String date, String time) {
         this.id = id;
         this.groupId = groupId;
-        this.teacher_subjectId = teacher_subjectId;
+        this.teacherId = teacherId;
         this.cabinet = cabinet;
         this.date = date;
         this.time = time;
@@ -28,7 +28,7 @@ public class Lesson {
         String[] vals = lesson.split("\\|");
         if (!vals[0].equals("null")) this.id = Integer.parseInt(vals[0]);
         if (!vals[1].equals("null")) this.groupId = Integer.parseInt(vals[1]);
-        if (!vals[2].equals("null")) this.teacher_subjectId = Integer.parseInt(vals[2]);
+        if (!vals[2].equals("null")) this.teacherId = Integer.parseInt(vals[2]);
         if (!vals[3].equals("null")) this.cabinet = Integer.parseInt(vals[3]);
         if (!vals[4].equals("null")) this.date = vals[4];
         if (!vals[5].equals("null")) this.time = vals[5];
@@ -40,7 +40,7 @@ public class Lesson {
     public String toString() {
         return id +
                 "|" + groupId +
-                "|" + teacher_subjectId +
+                "|" + teacherId +
                 "|" + cabinet +
                 "|" + date +
                 "|" + time + "|";
@@ -62,12 +62,12 @@ public class Lesson {
         this.groupId = groupId;
     }
 
-    public int getTeacher_subjectId() {
-        return teacher_subjectId;
+    public int getTeacherId() {
+        return teacherId;
     }
 
-    public void setTeacher_subjectId(int teacher_subjectId) {
-        this.teacher_subjectId = teacher_subjectId;
+    public void setTeacherId(int teacherId) {
+        this.teacherId = teacherId;
     }
 
     public int getCabinet() {
@@ -106,13 +106,13 @@ public class Lesson {
                 e.printStackTrace();
             }
     }
-    public void setTeacherSubjectIdDB(DatabaseConnection conn, String teacherSubjectId) {
-            this.teacher_subjectId = Integer.parseInt(teacherSubjectId);
+    public void setTeacherIdDB(DatabaseConnection conn, String teacherId) {
+            this.teacherId = Integer.parseInt(teacherId);
             try {
-                String prepStat = "UPDATE lesson SET teacher_subjectId = ? WHERE id = ?";
+                String prepStat = "UPDATE lesson SET teacherId = ? WHERE id = ?";
                 PreparedStatement preparedStatement = conn.getConnection().prepareStatement(prepStat);
                 preparedStatement.setInt(2, this.id);
-                preparedStatement.setInt(1, Integer.parseInt(teacherSubjectId));
+                preparedStatement.setInt(1, Integer.parseInt(teacherId));
                 preparedStatement.execute();
             } catch (SQLException e) {
                 e.printStackTrace();
@@ -171,8 +171,8 @@ public class Lesson {
             case "setGroupId":
                 setGroupIdDB(conn, value);
                 break;
-            case "setTeacherSubjectId":
-                setTeacherSubjectIdDB(conn, value);
+            case "setTeacherId":
+                setTeacherIdDB(conn, value);
                 break;
             case "setCabinet":
                 setCabinetDB(conn, value);

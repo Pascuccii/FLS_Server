@@ -1,7 +1,6 @@
 package Entities;
 
 import Connectivity.DatabaseConnection;
-import enums.Level;
 
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
@@ -9,23 +8,35 @@ import java.sql.SQLException;
 public class Group {
     private int id;
     private String level;
+    private String subject;
 
-    public Group(int id, String level) {
+    public Group(int id, String level, String subject) {
         this.id = id;
         this.level = level;
+        this.subject = subject;
     }
 
     public Group(String group) {
         String[] vals = group.split("\\|");
         if (!vals[0].equals("null")) this.id = Integer.parseInt(vals[0]);
         if (!vals[1].equals("null")) this.level = vals[1];
+        if (!vals[2].equals("null")) this.subject = vals[2];
     }
 
-    public Group(){}
+    public Group() {
+    }
+
+    public String getSubject() {
+        return subject;
+    }
+
+    public void setSubject(String subject) {
+        this.subject = subject;
+    }
 
     @Override
     public String toString() {
-        return id + "|" + level + "|";
+        return id + "|" + level + "|" + subject + "|";
     }
 
     public int getId() {
@@ -59,6 +70,19 @@ public class Group {
         }
     }
 
+    public void setSubjectDB(DatabaseConnection conn, String subject) {
+        this.subject = subject;
+        try {
+            String prepStat = "UPDATE `group` SET subjectId = ? WHERE id = ?";
+            PreparedStatement preparedStatement = conn.getConnection().prepareStatement(prepStat);
+            preparedStatement.setInt(2, this.id);
+            preparedStatement.setString(1, subject);
+            preparedStatement.execute();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
     public void deleteDB(DatabaseConnection conn) {
         try {
             String prepStat = "DELETE FROM `group` WHERE id = ?";
@@ -76,10 +100,13 @@ public class Group {
             case "setLevel":
                 setLevelDB(conn, value);
                 break;
+            case "setSubject":
+                setSubjectDB(conn, value);
+                break;
             case "delete":
                 deleteDB(conn);
                 break;
         }
     }
-    
+
 }

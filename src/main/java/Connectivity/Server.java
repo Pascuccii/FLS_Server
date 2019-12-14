@@ -1,9 +1,6 @@
 package Connectivity;
 
 import Entities.*;
-import enums.Disability;
-import enums.MaritalStatus;
-import enums.Retiree;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
@@ -27,14 +24,12 @@ import javafx.stage.StageStyle;
 import javafx.util.Callback;
 import javafx.util.Duration;
 
-import java.awt.*;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.net.Inet4Address;
 import java.net.ServerSocket;
 import java.sql.*;
-import java.time.LocalDate;
 import java.time.ZonedDateTime;
 
 import static java.lang.Thread.sleep;
@@ -148,7 +143,6 @@ public class Server extends Application implements TCPConnectionListener {
             initSubjectsData();
             initTeachersData();
             initStudentsData();
-            initTeachersSubjectsData();
             initLessonsData();
         } catch (SQLException e) {
             e.printStackTrace();
@@ -368,7 +362,6 @@ public class Server extends Application implements TCPConnectionListener {
                     initStudentsData();
                     initSubjectsData();
                     initTeachersData();
-                    initTeachersSubjectsData();
                 } catch (SQLException e) {
                     e.printStackTrace();
                 }
@@ -395,10 +388,6 @@ public class Server extends Application implements TCPConnectionListener {
                 tcpConnection.sendString(groupsData.size() + " GROUPS:");
                 for (Group g : groupsData)
                     tcpConnection.sendString(g.toString());
-
-                tcpConnection.sendString(teachersSubjectsData.size() + " TEACHERSSUBJECTS:");
-                for (TeacherSubject ts : teachersSubjectsData)
-                    tcpConnection.sendString(ts.toString());
 
                 tcpConnection.sendString("END");
 
@@ -474,11 +463,6 @@ public class Server extends Application implements TCPConnectionListener {
                         log(tcpConnection, value);
                         System.out.println(value.substring(10));
                         addLesson(value.substring(10));
-                        break;
-                    case "addTeacherSubject":
-                        log(tcpConnection, value);
-                        System.out.println(value.substring(18));
-                        addTeacherSubject(value.substring(18));
                         break;
                     case "addGroup":
                         log(tcpConnection, value);
@@ -578,6 +562,7 @@ public class Server extends Application implements TCPConnectionListener {
                 Group group = new Group();
                 group.setId(resultSet.getInt("id"));
                 group.setLevel(resultSet.getString("level"));
+                group.setSubject(resultSet.getString("subjectId"));
                 groupsData.add(group);
                 System.out.println(group);
             }
@@ -643,24 +628,6 @@ public class Server extends Application implements TCPConnectionListener {
         }
     }
 
-    private void initTeachersSubjectsData() throws SQLException {
-        if (connDB.isConnected()) {
-            Statement statement = connDB.getConnection().createStatement();
-            ResultSet resultSet = statement.executeQuery("SELECT  * FROM teacher_subject");
-            teachersSubjectsData.clear();
-
-            System.out.println();
-            while (resultSet.next()) {
-                TeacherSubject teacherSubject = new TeacherSubject();
-                teacherSubject.setId(resultSet.getInt("id"));
-                teacherSubject.setSubjectId(resultSet.getInt("subjectId"));
-                teacherSubject.setTeacherId(resultSet.getInt("teacherId"));
-                teachersSubjectsData.add(teacherSubject);
-                System.out.println(teacherSubject);
-            }
-        }
-    }
-
     private void initLessonsData() throws SQLException {
         if (connDB.isConnected()) {
             Statement statement = connDB.getConnection().createStatement();
@@ -672,7 +639,7 @@ public class Server extends Application implements TCPConnectionListener {
                 Lesson lesson = new Lesson();
                 lesson.setId(resultSet.getInt("id"));
                 lesson.setGroupId(resultSet.getInt("groupId"));
-                lesson.setTeacher_subjectId(resultSet.getInt("teacher_subjectId"));
+                lesson.setTeacherId(resultSet.getInt("teacherId"));
                 lesson.setCabinet(resultSet.getInt("cabinet"));
                 lesson.setDate(resultSet.getDate("date").toString());
                 lesson.setTime(resultSet.getTime("time").toString());
@@ -701,26 +668,13 @@ public class Server extends Application implements TCPConnectionListener {
     private void addLesson(String value) {
         Lesson u = new Lesson(value);
         try {
-            String prepStat = "INSERT INTO `flsdb`.`lesson` (`groupId`, `teacher_subjectId`, `cabinet`, `date`, `time`) VALUES (?,?,?,?,?);";
+            String prepStat = "INSERT INTO `flsdb`.`lesson` (`groupId`, `teacherId`, `cabinet`, `date`, `time`) VALUES (?,?,?,?,?);";
             PreparedStatement preparedStatement = connDB.getConnection().prepareStatement(prepStat);
             preparedStatement.setInt(1, u.getGroupId());
-            preparedStatement.setInt(2, u.getTeacher_subjectId());
+            preparedStatement.setInt(2, u.getTeacherId());
             preparedStatement.setInt(3, u.getCabinet());
             preparedStatement.setDate(4, Date.valueOf(u.getDate()));
             preparedStatement.setTime(5, Time.valueOf(u.getTime()));
-            preparedStatement.execute();
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-    }
-
-    private void addTeacherSubject(String value) {
-        TeacherSubject u = new TeacherSubject(value);
-        try {
-            String prepStat = "INSERT INTO `flsdb`.`teacher_subject` (`teacherId`, `subjectId`) VALUES (?,?);";
-            PreparedStatement preparedStatement = connDB.getConnection().prepareStatement(prepStat);
-            preparedStatement.setInt(1, u.getTeacherId());
-            preparedStatement.setInt(2, u.getSubjectId());
             preparedStatement.execute();
         } catch (SQLException e) {
             e.printStackTrace();
@@ -731,9 +685,10 @@ public class Server extends Application implements TCPConnectionListener {
         Group u = new Group(value);
         try {
             String prepStat =
-                    "INSERT INTO `flsdb`.`group` (`Level`) VALUES (?);";
+                    "INSERT INTO `flsdb`.`group` (`Level`, `subjectId`) VALUES (?,?);";
             PreparedStatement preparedStatement = connDB.getConnection().prepareStatement(prepStat);
             preparedStatement.setString(1, u.getLevel());
+            preparedStatement.setString(2, u.getSubject());
             preparedStatement.execute();
         } catch (SQLException e) {
             e.printStackTrace();
