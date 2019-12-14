@@ -17,7 +17,7 @@ DELIMITER $$
 USE `FLSDB`$$
 CREATE DEFINER = CURRENT_USER TRIGGER `FLSDB`.`users_AFTER_INSERT` AFTER INSERT ON `users` FOR EACH ROW
 BEGIN
-	INSERT INTO `user_configs` (`userId`, `theme`,`language`) VALUES (NEW.id, 'Light', 'English');
+	INSERT INTO `user_configs` (`userId`, `theme`,`language`) VALUES (NEW.id, 'Dark', 'English');
 END$$
 DELIMITER ;
 
@@ -162,9 +162,9 @@ INSERT INTO `flsdb`.`teacher_subject` (`teacherId`, `subjectId`) VALUES ('1', '4
 INSERT INTO `flsdb`.`teacher_subject` (`teacherId`, `subjectId`) VALUES ('2', '3');
 
 INSERT INTO `flsdb`.`lesson` (`groupId`, `teacher_subjectId`, `cabinet`, `date`, `time`) VALUES ('1', '1', '201', '2019-11-15', '13:25');
-INSERT INTO `flsdb`.`lesson` (`groupId`, `teacher_subjectId`, `cabinet`, `date`, `time`) VALUES ('4', '4', '109', '2019-11-16', '15:20');
+INSERT INTO `flsdb`.`lesson` (`groupId`, `teacher_subjectId`, `cabinet`, `date`, `time`) VALUES ('4', '2', '109', '2019-11-16', '15:20');
 INSERT INTO `flsdb`.`lesson` (`groupId`, `teacher_subjectId`, `cabinet`, `date`, `time`) VALUES ('3', '3', '116', '2019-11-17', '9:45');
-INSERT INTO `flsdb`.`lesson` (`groupId`, `teacher_subjectId`, `cabinet`, `date`, `time`) VALUES ('7', '2', '306', '2019-11-20', '8:00');
+INSERT INTO `flsdb`.`lesson` (`groupId`, `teacher_subjectId`, `cabinet`, `date`, `time`) VALUES ('2', '2', '306', '2019-11-20', '8:00');
 
 
 

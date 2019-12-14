@@ -41,6 +41,11 @@ public class Student {
 
     @Override
     public String toString() {
+        String email = this.email, phone = this.phone;
+        if(this.email == null || this.email.equals(""))
+            email = "null";
+        if(this.phone == null || this.phone.equals(""))
+            phone = "null";
         return id +
                 "|" + name +
                 "|" + surname +
@@ -91,19 +96,25 @@ public class Student {
     }
 
     public String getEmail() {
-        return Objects.requireNonNullElse(email, "");
+        return Objects.requireNonNullElse(email, "null");
     }
 
     public void setEmail(String email) {
-        this.email = email;
+        if (email.equals("null"))
+            this.email = "";
+        else
+            this.email = email;
     }
 
     public String getPhone() {
-        return Objects.requireNonNullElse(phone, "");
+        return Objects.requireNonNullElse(phone, "null");
     }
 
     public void setPhone(String phone) {
-        this.phone = phone;
+        if (phone.equals("null"))
+            this.phone = "";
+        else
+            this.phone = phone;
     }
 
     public void deleteDB(DatabaseConnection conn) {
@@ -170,12 +181,12 @@ public class Student {
     }
 
     public void setEmailDB(DatabaseConnection conn, String email) {
-        this.email = email;
+        setEmail(email);
         try {
             String prepStat = "UPDATE student SET email = ? WHERE id = ?";
             PreparedStatement preparedStatement = conn.getConnection().prepareStatement(prepStat);
             preparedStatement.setInt(2, this.id);
-            preparedStatement.setString(1, email);
+            preparedStatement.setString(1, this.email);
             preparedStatement.execute();
         } catch (SQLException e) {
             e.printStackTrace();
@@ -183,12 +194,12 @@ public class Student {
     }
 
     public void setPhoneDB(DatabaseConnection conn, String phone) {
-        this.phone = phone;
+        setPhone(phone);
         try {
             String prepStat = "UPDATE student SET phone = ? WHERE id = ?";
             PreparedStatement preparedStatement = conn.getConnection().prepareStatement(prepStat);
             preparedStatement.setInt(2, this.id);
-            preparedStatement.setString(1, phone);
+            preparedStatement.setString(1, this.phone);
             preparedStatement.execute();
         } catch (SQLException e) {
             e.printStackTrace();

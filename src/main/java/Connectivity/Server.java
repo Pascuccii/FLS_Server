@@ -13,6 +13,10 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.control.MenuItem;
+import javafx.scene.control.TextArea;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.image.Image;
 import javafx.scene.layout.AnchorPane;
@@ -23,6 +27,7 @@ import javafx.stage.StageStyle;
 import javafx.util.Callback;
 import javafx.util.Duration;
 
+import java.awt.*;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -315,7 +320,7 @@ public class Server extends Application implements TCPConnectionListener {
                     log += getCurrentDateTime() + newConn + " REJECTED (STOP mode)\n";
                 }
             } catch (IOException e) {
-                System.out.println("TCPConnection exception: " + e);
+
             }
         }
     }
@@ -401,7 +406,6 @@ public class Server extends Application implements TCPConnectionListener {
                 String[] vals = value.split("\\|");
                 switch (vals[0]) {
                     case "User":
-
                         log(tcpConnection, value);
                         for (User u : usersData)
                             if (u.getId() == Integer.parseInt(vals[2])) {
@@ -413,10 +417,88 @@ public class Server extends Application implements TCPConnectionListener {
                                 break;
                             }
                         break;
+                    case "Lesson":
+                        log(tcpConnection, value);
+                        for (Lesson l : lessonsData)
+                            if (l.getId() == Integer.parseInt(vals[2])) {
+                                    l.set(connDB, vals[1], vals[3]);
+                                break;
+                            }
+                        break;
+                    case "TeacherSubject":
+                        log(tcpConnection, value);
+                        for (TeacherSubject ts : teachersSubjectsData)
+                            if (ts.getId() == Integer.parseInt(vals[2])) {
+                                ts.set(connDB, vals[1], vals[3]);
+                                break;
+                            }
+                        break;
+                    case "Group":
+                        log(tcpConnection, value);
+                        for (Group g : groupsData)
+                            if (g.getId() == Integer.parseInt(vals[2])) {
+                                g.set(connDB, vals[1], vals[3]);
+                                break;
+                            }
+                        break;
+                    case "Student":
+                        log(tcpConnection, value);
+                        for (Student s : studentsData)
+                            if (s.getId() == Integer.parseInt(vals[2])) {
+                                s.set(connDB, vals[1], vals[3]);
+                                break;
+                            }
+                        break;
+                    case "Teacher":
+                        log(tcpConnection, value);
+                        for (Teacher t : teachersData)
+                            if (t.getId() == Integer.parseInt(vals[2])) {
+                                t.set(connDB, vals[1], vals[3]);
+                                break;
+                            }
+                        break;
+                    case "Subject":
+                        log(tcpConnection, value);
+                        for (Subject sb : subjectsData)
+                            if (sb.getId() == Integer.parseInt(vals[2])) {
+                                sb.set(connDB, vals[1], vals[3]);
+                                break;
+                            }
+                        break;
                     case "addUser":
                         log(tcpConnection, value);
                         System.out.println(value.substring(8));
                         addUser(value.substring(8));
+                        break;
+                    case "addLesson":
+                        log(tcpConnection, value);
+                        System.out.println(value.substring(10));
+                        addLesson(value.substring(10));
+                        break;
+                    case "addTeacherSubject":
+                        log(tcpConnection, value);
+                        System.out.println(value.substring(18));
+                        addTeacherSubject(value.substring(18));
+                        break;
+                    case "addGroup":
+                        log(tcpConnection, value);
+                        System.out.println(value.substring(9));
+                        addGroup(value.substring(9));
+                        break;
+                    case "addStudent":
+                        log(tcpConnection, value);
+                        System.out.println(value.substring(11));
+                        addStudent(value.substring(11));
+                        break;
+                    case "addTeacher":
+                        log(tcpConnection, value);
+                        System.out.println(value.substring(11));
+                        addTeacher(value.substring(11));
+                        break;
+                    case "addSubject":
+                        log(tcpConnection, value);
+                        System.out.println(value.substring(11));
+                        addSubject(value.substring(11));
                         break;
                     case "changeAccountData":
                         log(tcpConnection, value);
@@ -599,7 +681,7 @@ public class Server extends Application implements TCPConnectionListener {
             }
         }
     }
-    
+
     private void addUser(String value) {
         User u = new User(value);
         try {
@@ -610,6 +692,93 @@ public class Server extends Application implements TCPConnectionListener {
             preparedStatement.setString(2, u.getPassword());
             preparedStatement.setString(3, u.getEmail());
             preparedStatement.setInt(4, u.getAccessMode());
+            preparedStatement.execute();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void addLesson(String value) {
+        Lesson u = new Lesson(value);
+        try {
+            String prepStat = "INSERT INTO `flsdb`.`lesson` (`groupId`, `teacher_subjectId`, `cabinet`, `date`, `time`) VALUES (?,?,?,?,?);";
+            PreparedStatement preparedStatement = connDB.getConnection().prepareStatement(prepStat);
+            preparedStatement.setInt(1, u.getGroupId());
+            preparedStatement.setInt(2, u.getTeacher_subjectId());
+            preparedStatement.setInt(3, u.getCabinet());
+            preparedStatement.setDate(4, Date.valueOf(u.getDate()));
+            preparedStatement.setTime(5, Time.valueOf(u.getTime()));
+            preparedStatement.execute();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void addTeacherSubject(String value) {
+        TeacherSubject u = new TeacherSubject(value);
+        try {
+            String prepStat = "INSERT INTO `flsdb`.`teacher_subject` (`teacherId`, `subjectId`) VALUES (?,?);";
+            PreparedStatement preparedStatement = connDB.getConnection().prepareStatement(prepStat);
+            preparedStatement.setInt(1, u.getTeacherId());
+            preparedStatement.setInt(2, u.getSubjectId());
+            preparedStatement.execute();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void addGroup(String value) {
+        Group u = new Group(value);
+        try {
+            String prepStat =
+                    "INSERT INTO `flsdb`.`group` (`Level`) VALUES (?);";
+            PreparedStatement preparedStatement = connDB.getConnection().prepareStatement(prepStat);
+            preparedStatement.setString(1, u.getLevel());
+            preparedStatement.execute();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void addStudent(String value) {
+        Student u = new Student(value);
+        try {
+            String prepStat = "INSERT INTO `flsdb`.`student` (`name`, `surname`, `patronymic`, `groupId`, `email`, `phone`) VALUES (?,?,?,?,?,?);";
+            PreparedStatement preparedStatement = connDB.getConnection().prepareStatement(prepStat);
+            preparedStatement.setString(1, u.getName());
+            preparedStatement.setString(2, u.getSurname());
+            preparedStatement.setString(3, u.getPatronymic());
+            preparedStatement.setInt(4, u.getGroupId());
+            preparedStatement.setString(5, u.getEmail());
+            preparedStatement.setString(6, u.getPhone());
+            preparedStatement.execute();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void addTeacher(String value) {
+        Teacher u = new Teacher(value);
+        try {
+            String prepStat = "INSERT INTO `flsdb`.`teacher` (`name`, `surname`, `patronymic`) VALUES (?,?,?);";
+            PreparedStatement preparedStatement = connDB.getConnection().prepareStatement(prepStat);
+            preparedStatement.setString(1, u.getName());
+            preparedStatement.setString(2, u.getSurname());
+            preparedStatement.setString(3, u.getPatronymic());
+            preparedStatement.execute();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void addSubject(String value) {
+        Subject u = new Subject(value);
+        try {
+            String prepStat =
+                    "INSERT INTO `flsdb`.`subject` (`name`, `hours`) VALUES (?,?);";
+            PreparedStatement preparedStatement = connDB.getConnection().prepareStatement(prepStat);
+            preparedStatement.setString(1, u.getName());
+            preparedStatement.setInt(2, u.getHours());
             preparedStatement.execute();
         } catch (SQLException e) {
             e.printStackTrace();
