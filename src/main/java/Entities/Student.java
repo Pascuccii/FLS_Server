@@ -100,7 +100,7 @@ public class Student {
     }
 
     public void setEmail(String email) {
-        if (email.equals("null"))
+        if (email.equals("null") || email.equals(""))
             this.email = "";
         else
             this.email = email;
@@ -111,7 +111,7 @@ public class Student {
     }
 
     public void setPhone(String phone) {
-        if (phone.equals("null"))
+        if (phone.equals("null") || phone.equals(""))
             this.phone = "";
         else
             this.phone = phone;

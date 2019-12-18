@@ -253,7 +253,7 @@ public class Server extends Application implements TCPConnectionListener {
         currentLanguage = "English";
     }
 
-    public void translate() {
+    private void translate() {
         if (currentLanguage.equals("English")) {
             currentLanguage = "Russian";
             Platform.runLater(() -> {
@@ -620,8 +620,14 @@ public class Server extends Application implements TCPConnectionListener {
                 student.setSurname(resultSet.getString("surname"));
                 student.setPatronymic(resultSet.getString("patronymic"));
                 student.setGroupId(resultSet.getInt("groupId"));
-                student.setEmail(resultSet.getString("email"));
-                student.setPhone(resultSet.getString("phone"));
+                String email = resultSet.getString("email");
+                if(email == null)
+                    email = "null";
+                student.setEmail(email);
+                String phone = resultSet.getString("phone");
+                if(phone == null)
+                    phone = "null";
+                student.setPhone(phone);
                 studentsData.add(student);
                 System.out.println(student);
             }
