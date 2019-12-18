@@ -10,12 +10,9 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
-import javafx.scene.control.MenuItem;
-import javafx.scene.control.TextArea;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.image.Image;
+import javafx.scene.input.KeyCode;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
@@ -106,6 +103,8 @@ public class Server extends Application implements TCPConnectionListener {
     @FXML
     private Label serverLabel;
     @FXML
+    private TextField portTextField;
+    @FXML
     private Label titleLabel;
     private String currentLanguage;
 
@@ -183,6 +182,11 @@ public class Server extends Application implements TCPConnectionListener {
             textAreaLog.setText("");
             log = "";
         });
+        portTextField.setOnKeyPressed(keyEvent -> {
+            if (keyEvent.getCode() == KeyCode.ENTER)
+                if (portTextField.getText().matches("[0-9]{4}"))
+                    serverOffMenuItem.fire();
+        });
         emptyLabel = new Label("No connections");
         try {
             titleLabel.setText(Inet4Address.getLocalHost().getHostAddress() + ":" + serverSocket.getLocalPort());
@@ -194,13 +198,15 @@ public class Server extends Application implements TCPConnectionListener {
                 serverOnOffMenuButton.setText(serverOnMenuItem.getText());
                 serverState = 1;
                 try {
-                    serverSocket = new ServerSocket(8000);
-                    titleLabel.setText(Inet4Address.getLocalHost().getHostAddress() + ":" + serverSocket.getLocalPort());
-                    serverSocket.setSoTimeout(1000);
+                    if (portTextField.getText().matches("[0-9]{4}")) {
+                        serverSocket = new ServerSocket(Integer.parseInt(portTextField.getText().trim()));
+                        titleLabel.setText(Inet4Address.getLocalHost().getHostAddress() + ":" + serverSocket.getLocalPort());
+                        serverSocket.setSoTimeout(1000);
+                        new Thread(this::listen).start();
+                    }
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
-                new Thread(this::listen).start();
             }
         });
         serverStopMenuItem.setOnAction(event -> {
@@ -410,7 +416,7 @@ public class Server extends Application implements TCPConnectionListener {
                         log(tcpConnection, value);
                         for (Lesson l : lessonsData)
                             if (l.getId() == Integer.parseInt(vals[2])) {
-                                    l.set(connDB, vals[1], vals[3]);
+                                l.set(connDB, vals[1], vals[3]);
                                 break;
                             }
                         break;
@@ -621,11 +627,11 @@ public class Server extends Application implements TCPConnectionListener {
                 student.setPatronymic(resultSet.getString("patronymic"));
                 student.setGroupId(resultSet.getInt("groupId"));
                 String email = resultSet.getString("email");
-                if(email == null)
+                if (email == null)
                     email = "null";
                 student.setEmail(email);
                 String phone = resultSet.getString("phone");
-                if(phone == null)
+                if (phone == null)
                     phone = "null";
                 student.setPhone(phone);
                 studentsData.add(student);
@@ -674,7 +680,8 @@ public class Server extends Application implements TCPConnectionListener {
     private void addLesson(String value) {
         Lesson u = new Lesson(value);
         try {
-            String prepStat = "INSERT INTO `flsdb`.`lesson` (`groupId`, `teacherId`, `cabinet`, `date`, `time`) VALUES (?,?,?,?,?);";
+            String prepStat =
+                    "INSERT INTO `flsdb`.`lesson` (`groupId`, `teacherId`, `cabinet`, `date`, `time`) VALUES (?,?,?,?,?);";
             PreparedStatement preparedStatement = connDB.getConnection().prepareStatement(prepStat);
             preparedStatement.setInt(1, u.getGroupId());
             preparedStatement.setInt(2, u.getTeacherId());
@@ -704,7 +711,8 @@ public class Server extends Application implements TCPConnectionListener {
     private void addStudent(String value) {
         Student u = new Student(value);
         try {
-            String prepStat = "INSERT INTO `flsdb`.`student` (`name`, `surname`, `patronymic`, `groupId`, `email`, `phone`) VALUES (?,?,?,?,?,?);";
+            String prepStat =
+                    "INSERT INTO `flsdb`.`student` (`name`, `surname`, `patronymic`, `groupId`, `email`, `phone`) VALUES (?,?,?,?,?,?);";
             PreparedStatement preparedStatement = connDB.getConnection().prepareStatement(prepStat);
             preparedStatement.setString(1, u.getName());
             preparedStatement.setString(2, u.getSurname());
