@@ -264,7 +264,7 @@ public class Server extends Application implements TCPConnectionListener {
             currentLanguage = "Russian";
             Platform.runLater(() -> {
                 languageButton.setStyle("-fx-background-image: url(assets/russian.png)");
-                saveButton.setText("Сохранить");
+                saveButton.setText("Отчёт");
                 clearButton.setText("Отчистить");
                 serverLabel.setText("Сервер:");
                 userColumn.setText("Пользователь");

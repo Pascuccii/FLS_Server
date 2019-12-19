@@ -76,7 +76,7 @@
                         <Image url="@../assets/fix-black-2.png" />
                      </image>
                   </ImageView>
-                  <TextField fx:id="portTextField" layoutX="489.0" layoutY="20.0" prefHeight="27.0" prefWidth="47.0" text="8000" />
+                  <TextField fx:id="portTextField" layoutX="489.0" layoutY="21.0" prefHeight="27.0" prefWidth="47.0" text="8000" />
                </children>
             </AnchorPane>
          </children>
